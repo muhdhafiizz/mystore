@@ -35,7 +35,7 @@ class LoginProvider extends ChangeNotifier {
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withOpacity(0.2), // dim background
+      barrierColor: Colors.black.withOpacity(0.2),
       builder: (_) => const LoadingDialog(),
     );
   }

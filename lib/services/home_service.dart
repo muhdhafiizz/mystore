@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:mystore_assessment/model/category_model.dart';
 import 'package:mystore_assessment/model/product_model.dart';
 
 class HomeService {

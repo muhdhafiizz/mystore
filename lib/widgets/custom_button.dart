@@ -9,6 +9,7 @@ class CustomButton extends StatelessWidget {
   final Color textColor;
   final Color borderColor;
   final bool isFilled;
+  final double? height;
 
   const CustomButton({
     super.key,
@@ -19,6 +20,7 @@ class CustomButton extends StatelessWidget {
     this.textColor = Colors.black,
     this.borderColor = Colors.transparent,
     this.isFilled = true,
+    this.height,
   });
 
   @override
@@ -30,6 +32,7 @@ class CustomButton extends StatelessWidget {
       child: Opacity(
         opacity: isDisabled ? 0.5 : 1.0,
         child: Container(
+          height: height,
           padding: const EdgeInsets.symmetric(vertical: 12),
           margin: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mystore_assessment/providers/login_provider.dart';
+import 'package:mystore_assessment/ui/cart_summary_view.dart';
+import 'package:mystore_assessment/widgets/custom_button.dart';
 import 'package:mystore_assessment/widgets/shimmer_loading.dart';
 import 'package:provider/provider.dart';
 import '../providers/home_provider.dart';
@@ -26,7 +28,12 @@ class HomeView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildGreetingText(user?['firstName'], user?['lastName']),
+              _buildGreetingText(
+                user?['firstName'],
+                user?['lastName'],
+                homeProvider,
+                context,
+              ),
               const SizedBox(height: 16),
               Expanded(child: _buildProductList(context, homeProvider)),
             ],
@@ -35,10 +42,15 @@ class HomeView extends StatelessWidget {
       ),
     );
   }
-  
 
-  Widget _buildGreetingText(String? firstName, String? lastName) {
+  Widget _buildGreetingText(
+    String? firstName,
+    String? lastName,
+    HomeProvider provider,
+    BuildContext context,
+  ) {
     final fullName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -52,7 +64,7 @@ class HomeView extends StatelessWidget {
             ),
           ],
         ),
-        CircleAvatar(child: Icon(Icons.shopping_bag_outlined, color: Colors.black,), backgroundColor: Colors.grey[200],),
+        _buildCartPressed(provider, context),
       ],
     );
   }
@@ -80,7 +92,7 @@ class HomeView extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 0.75,
+          childAspectRatio: 0.63,
         ),
         itemCount: provider.products.length + (provider.isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
@@ -106,7 +118,8 @@ class HomeView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
+                SizedBox(
+                  height: 100,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
@@ -119,33 +132,55 @@ class HomeView extends StatelessWidget {
                 Text(
                   product.title,
                   style: const TextStyle(fontWeight: FontWeight.w600),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   '\$${product.price}',
                   style: const TextStyle(color: Colors.grey),
                 ),
-                const SizedBox(height: 6),
-                ElevatedButton(
-                  onPressed: () => provider.addToCart(product),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    "Add to Cart",
-                    style: TextStyle(fontSize: 12),
-                  ),
+                Spacer(),
+                CustomButton(
+                  onTap: () => provider.addToCart(product),
+                  text: "Add to Cart",
+                  backgroundColor: Colors.black,
+                  textColor: Colors.white,
+                  height: 50,
                 ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildCartPressed(HomeProvider provider, BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: ((_) => CartSummaryView())),
+      ),
+      child: Stack(
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.grey[200],
+            child: Icon(Icons.shopping_bag_outlined, color: Colors.black),
+          ),
+          if (provider.totalCartItems > 0)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: CircleAvatar(
+                radius: 8,
+                backgroundColor: Colors.red,
+                child: Text(
+                  provider.totalCartItems.toString(),
+                  style: const TextStyle(fontSize: 10, color: Colors.white),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

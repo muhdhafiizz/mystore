@@ -11,18 +11,19 @@ class HomeProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isLoadingMore = false;
   String? _error;
-  Map<String, dynamic>? _user;
+  Map<Product, int> _cart = {};
+  Map<Product, int> get cart => _cart;
 
   List<Product> get products => _products;
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
-  Map<String, dynamic>? get user => _user;
-
-  void setUser(Map<String, dynamic> userData) {
-    _user = userData;
-    notifyListeners();
-  }
+  int get totalCartItems =>
+      _cart.values.fold(0, (sum, quantity) => sum + quantity);
+  double get totalCartPrice => _cart.entries.fold(
+    0.0,
+    (sum, entry) => sum + (entry.key.price * entry.value),
+  );
 
   Future<void> fetchInitialProducts() async {
     _isLoading = true;
@@ -63,9 +64,11 @@ class HomeProvider extends ChangeNotifier {
   }
 
   void addToCart(Product product) {
-    // For now, just log or print (no cart state implemented)
-    debugPrint("Added to cart: ${product.title}");
+    if (_cart.containsKey(product)) {
+      _cart[product] = _cart[product]! + 1;
+    } else {
+      _cart[product] = 1;
+    }
+    notifyListeners();
   }
-
-  
 }
