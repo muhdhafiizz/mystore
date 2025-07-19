@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mystore_assessment/providers/cart_summary_provider.dart';
 import 'package:mystore_assessment/providers/home_provider.dart';
+import 'package:mystore_assessment/widgets/empty_list.dart';
 import 'package:provider/provider.dart';
 import '../model/product_model.dart';
 
@@ -27,7 +28,7 @@ class CartSummaryView extends StatelessWidget {
                     child: _topNav(context),
                   ),
                   const Expanded(
-                    child: Center(child: Text("Your cart is empty.")),
+                    child: Center(child: EmptyList(text: "Your cart is empty.")),
                   ),
                 ],
               )

@@ -3,6 +3,7 @@ import 'package:mystore_assessment/providers/cart_summary_provider.dart';
 import 'package:mystore_assessment/providers/login_provider.dart';
 import 'package:mystore_assessment/ui/cart_summary_view.dart';
 import 'package:mystore_assessment/widgets/custom_button.dart';
+import 'package:mystore_assessment/widgets/empty_list.dart';
 import 'package:mystore_assessment/widgets/shimmer_loading.dart';
 import 'package:provider/provider.dart';
 import '../providers/home_provider.dart';
@@ -17,29 +18,71 @@ class HomeView extends StatelessWidget {
     final user = loginProvider.user;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (homeProvider.products.isEmpty && !homeProvider.isLoading) {
-        homeProvider.fetchInitialProducts();
+      if (homeProvider.products.isEmpty &&
+          homeProvider.categories.isEmpty &&
+          !homeProvider.isLoading) {
+        () async {
+          await homeProvider.fetchInitialProducts();
+          await homeProvider.fetchCategories();
+        }();
       }
     });
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildGreetingText(
-                user?['firstName'],
-                user?['lastName'],
-                homeProvider,
-                context,
-              ),
-              const SizedBox(height: 16),
-              Expanded(child: _buildProductList(context, homeProvider)),
-            ],
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildGreetingText(
+              user?['firstName'],
+              user?['lastName'],
+              homeProvider,
+              context,
+            ),
+            SizedBox(height: 10),
+
+            _buildListViewCategory(homeProvider),
+            const SizedBox(height: 16),
+            Expanded(child: _buildProductList(context, homeProvider)),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildListViewCategory(HomeProvider provider) {
+    return SizedBox(
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: provider.categories.length,
+        itemBuilder: (context, index) {
+          final category = provider.categories[index];
+          final isSelected =
+              category == provider.selectedCategory ||
+              (category == 'All' && provider.selectedCategory == null);
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(category),
+              selected: isSelected,
+              onSelected: (_) {
+                if (category == 'All') {
+                  provider.clearCategoryFilter();
+                } else {
+                  provider.filterByCategory(category);
+                }
+              },
+              selectedColor: Colors.black,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : Colors.black,
+              ),
+              backgroundColor: Colors.grey[200],
+            ),
+          );
+        },
       ),
     );
   }
@@ -52,21 +95,24 @@ class HomeView extends StatelessWidget {
   ) {
     final fullName = '${firstName ?? ''} ${lastName ?? ''}'.trim();
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Hi,", style: TextStyle(fontSize: 16)),
-            Text(
-              fullName.isEmpty ? 'User' : fullName,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        _buildCartPressed(provider, context),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("Hi,", style: TextStyle(fontSize: 16)),
+              Text(
+                fullName.isEmpty ? 'User' : fullName,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          _buildCartPressed(provider, context),
+        ],
+      ),
     );
   }
 
@@ -79,16 +125,26 @@ class HomeView extends StatelessWidget {
       return Center(child: Text(provider.error!));
     }
 
+    if (provider.products.isEmpty) {
+      return const Center(child: EmptyList(text: "No data available."));
+    }
+
     return NotificationListener<ScrollNotification>(
       onNotification: (ScrollNotification scrollInfo) {
         if (!provider.isLoadingMore &&
-            scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-          provider.fetchNextPage();
+            scrollInfo.metrics.pixels >=
+                scrollInfo.metrics.maxScrollExtent - 100) {
+          if (provider.selectedCategory == null) {
+            provider.fetchNextPage();
+          } else {
+            provider.fetchNextCategoryPage();
+          }
         }
+
         return false;
       },
       child: GridView.builder(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 12,

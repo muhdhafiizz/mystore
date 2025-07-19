@@ -13,8 +13,23 @@ class HomeProvider extends ChangeNotifier {
   String? _error;
   Map<Product, int> _cart = {};
   Map<Product, int> get cart => _cart;
+  List<String> _categories = [];
+  Map<String, bool> _hasMoreCategoryItems = {};
 
-  List<Product> get products => _products;
+  String? _selectedCategory;
+
+  int _categoryCurrentPage = 0;
+  final int _limitCategory = 15;
+  bool _isCategoryPaginating = false;
+  Map<String, List<Product>> _categoryProductsMap = {};
+
+  List<Product> get products {
+    if (_selectedCategory != null) {
+      return _categoryProductsMap[_selectedCategory] ?? [];
+    }
+    return _products;
+  }
+
   bool get isLoading => _isLoading;
   bool get isLoadingMore => _isLoadingMore;
   String? get error => _error;
@@ -24,6 +39,8 @@ class HomeProvider extends ChangeNotifier {
     0.0,
     (sum, entry) => sum + (entry.key.price * entry.value),
   );
+  List<String> get categories => _categories;
+  String? get selectedCategory => _selectedCategory;
 
   Future<void> fetchInitialProducts() async {
     _isLoading = true;
@@ -63,6 +80,67 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> fetchCategories() async {
+    if (_categories.isNotEmpty) return; 
+
+    try {
+      final fetched = await _homeService.fetchCategories();
+      _categories = ['All', ...fetched];
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+    }
+  }
+
+  Future<void> filterByCategory(String category) async {
+    _isLoading = true;
+    _selectedCategory = category;
+    _categoryCurrentPage = 0;
+    _categoryProductsMap[category] = [];
+    _hasMoreCategoryItems[category] = true;
+    notifyListeners();
+
+    try {
+      final fetched = await _homeService.fetchProductsByCategory(
+        category,
+        skip: 0,
+        limit: _limit,
+      );
+      _categoryProductsMap[category] = fetched;
+
+      if (fetched.length < _limit) {
+        _hasMoreCategoryItems[category] = false;
+      }
+    } catch (e) {
+      _error = e.toString();
+    }
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> fetchNextCategoryPage() async {
+    if (_isCategoryPaginating || _selectedCategory == null) return;
+
+    _isCategoryPaginating = true;
+    notifyListeners();
+
+    try {
+      _categoryCurrentPage++;
+      final nextProducts = await _homeService.fetchProductsByCategory(
+        _selectedCategory!,
+        skip: _categoryCurrentPage * _limitCategory,
+        limit: _limitCategory,
+      );
+      _categoryProductsMap[_selectedCategory!]!.addAll(nextProducts);
+    } catch (e) {
+      _error = e.toString();
+    }
+
+    _isCategoryPaginating = false;
+    notifyListeners();
+  }
+
   void addToCart(Product product) {
     if (_cart.containsKey(product)) {
       _cart[product] = _cart[product]! + 1;
@@ -81,6 +159,12 @@ class HomeProvider extends ChangeNotifier {
 
   void clearCart() {
     _cart.clear();
+    notifyListeners();
+  }
+
+  void clearCategoryFilter() {
+    _selectedCategory = null;
+    fetchInitialProducts();
     notifyListeners();
   }
 }
