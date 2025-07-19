@@ -71,4 +71,16 @@ class HomeProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void removeFromCart(Product product) {
+    if (_cart.containsKey(product)) {
+      _cart.remove(product);
+      notifyListeners();
+    }
+  }
+
+  void clearCart() {
+    _cart.clear();
+    notifyListeners();
+  }
 }

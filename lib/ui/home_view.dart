@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mystore_assessment/providers/cart_summary_provider.dart';
 import 'package:mystore_assessment/providers/login_provider.dart';
 import 'package:mystore_assessment/ui/cart_summary_view.dart';
 import 'package:mystore_assessment/widgets/custom_button.dart';
@@ -101,6 +102,8 @@ class HomeView extends StatelessWidget {
           }
 
           final product = provider.products[index];
+          final quantity = provider.cart[product] ?? 0;
+          final cartProvider = Provider.of<CartSummaryProvider>(context);
 
           return Container(
             padding: const EdgeInsets.all(12),
@@ -140,13 +143,53 @@ class HomeView extends StatelessWidget {
                   style: const TextStyle(color: Colors.grey),
                 ),
                 Spacer(),
-                CustomButton(
-                  onTap: () => provider.addToCart(product),
-                  text: "Add to Cart",
-                  backgroundColor: Colors.black,
-                  textColor: Colors.white,
-                  height: 50,
-                ),
+                if (quantity == 0)
+                  CustomButton(
+                    onTap: () {
+                      Provider.of<CartSummaryProvider>(
+                        context,
+                        listen: false,
+                      ).addItem(product);
+                      provider.addToCart(product);
+                    },
+                    text: "Add to Cart",
+                    backgroundColor: Colors.black,
+                    textColor: Colors.white,
+                    height: 50,
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomButton(
+                          onTap: () {
+                            provider.removeFromCart(product);
+                            cartProvider.removeItem(product);
+                          },
+                          text: "Remove",
+                          backgroundColor: Colors.grey[200],
+                          textColor: Colors.black,
+                          height: 50,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        height: 50,
+                        width: 50,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          onPressed: () {
+                            cartProvider.addItem(product);
+                            provider.addToCart(product);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
           );

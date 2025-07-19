@@ -5,7 +5,7 @@ class CustomButton extends StatelessWidget {
   final IconData? iconData;
   final String? text;
   final VoidCallback? onTap;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final Color textColor;
   final Color borderColor;
   final bool isFilled;
@@ -16,7 +16,7 @@ class CustomButton extends StatelessWidget {
     this.iconData,
     this.text,
     required this.onTap,
-    this.backgroundColor = Colors.white,
+    this.backgroundColor,
     this.textColor = Colors.black,
     this.borderColor = Colors.transparent,
     this.isFilled = true,

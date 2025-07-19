@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mystore_assessment/providers/cart_summary_provider.dart';
 import 'package:mystore_assessment/providers/home_provider.dart';
 import 'package:mystore_assessment/providers/login_provider.dart';
 import 'package:mystore_assessment/ui/login_view.dart';
@@ -10,6 +11,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => LoginProvider()),
         ChangeNotifierProvider(create: (_) => HomeProvider(),),
+        ChangeNotifierProvider(create: (_) => CartSummaryProvider(),),
       ],
       child: const MyApp(),
     ),
