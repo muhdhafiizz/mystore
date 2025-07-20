@@ -74,7 +74,7 @@ Widget _buildPasswordTextfield(TextEditingController controller, String label) {
   return CustomTextField(
     controller: controller,
     label: label,
-    obscureText: true,
+    isPassword: true,
   );
 }
 

@@ -8,8 +8,10 @@ class LoginProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
   Map<String, dynamic>? _user;
+  bool _obscurePassword = true;
 
   bool get isLoading => _isLoading;
+  bool get obscurePassword => _obscurePassword;
   String? get error => _error;
   Map<String, dynamic>? get user => _user;
 
@@ -38,5 +40,10 @@ class LoginProvider extends ChangeNotifier {
       barrierColor: Colors.black.withOpacity(0.2),
       builder: (_) => const LoadingDialog(),
     );
+  }
+
+  void togglePasswordVisibility() {
+    _obscurePassword = !_obscurePassword;
+    notifyListeners();
   }
 }

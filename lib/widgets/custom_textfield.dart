@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:mystore_assessment/providers/login_provider.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
-  final bool obscureText;
+  final bool isPassword;
 
   const CustomTextField({
     super.key,
     required this.controller,
     required this.label,
-    this.obscureText = false,
+    this.isPassword = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final loginProvider = Provider.of<LoginProvider>(context);
+
     return TextField(
       controller: controller,
-      obscureText: obscureText,
+      obscureText: isPassword ? loginProvider.obscurePassword : false,
       cursorColor: Colors.black,
       decoration: InputDecoration(
         hintText: label,
@@ -30,6 +34,16 @@ class CustomTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: Colors.black),
         ),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  loginProvider.obscurePassword
+                      ? Icons.visibility_off
+                      : Icons.visibility,
+                ),
+                onPressed: loginProvider.togglePasswordVisibility,
+              )
+            : null,
       ),
     );
   }
