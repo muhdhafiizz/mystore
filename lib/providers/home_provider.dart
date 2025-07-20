@@ -81,7 +81,7 @@ class HomeProvider extends ChangeNotifier {
   }
 
   Future<void> fetchCategories() async {
-    if (_categories.isNotEmpty) return; 
+    if (_categories.isNotEmpty) return;
 
     try {
       final fetched = await _homeService.fetchCategories();
@@ -152,7 +152,11 @@ class HomeProvider extends ChangeNotifier {
 
   void removeFromCart(Product product) {
     if (_cart.containsKey(product)) {
-      _cart.remove(product);
+      if (_cart[product]! > 1) {
+        _cart[product] = _cart[product]! - 1;
+      } else {
+        _cart.remove(product);
+      }
       notifyListeners();
     }
   }
